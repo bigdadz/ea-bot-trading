@@ -130,12 +130,16 @@ ENUM_SIGNAL CSignalManager::CheckSignal()
       }
    }
 
-   // Buy: uptrend + golden cross + RSI in range + ADX strong
-   if(isTrendUp && goldenCross && rsiInRange && adxOK)
+   // RSI directional confirmation
+   bool rsiBullish = (rsiVal > 50);
+   bool rsiBearish = (rsiVal < 50);
+
+   // Buy: uptrend + golden cross + RSI in range + RSI bullish + ADX strong
+   if(isTrendUp && goldenCross && rsiInRange && rsiBullish && adxOK)
       return SIGNAL_BUY;
 
-   // Sell: downtrend + death cross + RSI in range + ADX strong
-   if(isTrendDown && deathCross && rsiInRange && adxOK)
+   // Sell: downtrend + death cross + RSI in range + RSI bearish + ADX strong
+   if(isTrendDown && deathCross && rsiInRange && rsiBearish && adxOK)
       return SIGNAL_SELL;
 
    return SIGNAL_NONE;
