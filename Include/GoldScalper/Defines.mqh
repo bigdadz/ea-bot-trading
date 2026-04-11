@@ -55,7 +55,7 @@ input int    InpRsiLower            = 30;      // RSI Lower Limit
 input int              InpAtrPeriod        = 14;       // ATR Period
 input ENUM_SLTP_MODE   InpSlTpMode         = SLTP_ATR; // SL/TP Mode (Fixed or ATR)
 input double           InpAtrSlMultiplier  = 0.5;      // ATR x ? = Stop Loss
-input double           InpAtrTpMultiplier  = 1.5;      // ATR x ? = Take Profit
+input double           InpAtrTpMultiplier  = 1.0;      // ATR x ? = Take Profit
 input int    InpTakeProfit          = 10000;   // Take Profit (points) - XAUUSD: 10000=$10
 input int    InpStopLoss            = 5000;    // Stop Loss (points) - XAUUSD: 5000=$5
 input bool   InpCloseOnOpposite     = true;    // Close On Opposite Signal
@@ -88,7 +88,7 @@ input bool   InpUseTrailingStop     = true;    // Use Trailing Stop
 input int    InpTrailingStart       = 4000;    // Trailing Start (points) - XAUUSD: 4000=$4
 input int    InpTrailingStep        = 1000;    // Trailing Step (points) - XAUUSD: 1000=$1
 input int    InpTrailingStop        = 3000;    // Trailing Distance (points) - XAUUSD: 3000=$3
-input double InpAtrTrailStartMultiplier = 1.0;  // ATR x ? = Trail Start (ATR mode)
+input double InpAtrTrailStartMultiplier = 0.7;  // ATR x ? = Trail Start (ATR mode)
 input double InpAtrTrailStopMultiplier  = 0.3;  // ATR x ? = Trail Distance (ATR mode)
 input double InpAtrTrailStepMultiplier  = 0.2;  // ATR x ? = Trail Step (ATR mode)
 
