@@ -94,4 +94,8 @@ input int    InpNewsMinsAfter       = 15;      // Minutes After News
 input ENUM_NEWS_IMPACT InpNewsImpact = NEWS_HIGH; // News Impact Level
 input bool   InpCloseBeforeNews     = false;   // Close Orders Before News
 
+//--- Input Parameters: Debug
+input group "=== Debug ==="
+input bool   InpDebugMode           = true;    // Debug Mode (log to Experts tab)
+
 #endif

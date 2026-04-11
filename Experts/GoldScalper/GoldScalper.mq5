@@ -3,11 +3,10 @@
 //|                                                      GoldScalper |
 //|                 Scalping EA for XAUUSD - EMA Crossover + RSI     |
 //+------------------------------------------------------------------+
-#property copyright   EA_NAME
+#property copyright   "GoldScalper"
 #property link        ""
-#property version     "1.00"
+#property version     "1.01"
 #property description "Scalping EA for XAUUSD using Multi-timeframe EMA + RSI"
-#property strict
 
 #include <GoldScalper/Defines.mqh>
 #include <GoldScalper/SignalManager.mqh>
@@ -26,6 +25,21 @@ CTrailingManager g_trailingMgr;
 CTimeFilter      g_timeFilter;
 CNewsFilter      g_newsFilter;
 CDashboard       g_dashboard;
+
+//--- New bar detection
+datetime g_lastBarTime = 0;
+
+//+------------------------------------------------------------------+
+bool IsNewBar()
+{
+   datetime currentBarTime = iTime(_Symbol, PERIOD_M5, 0);
+   if(currentBarTime != g_lastBarTime)
+   {
+      g_lastBarTime = currentBarTime;
+      return true;
+   }
+   return false;
+}
 
 //+------------------------------------------------------------------+
 int OnInit()
@@ -62,12 +76,15 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 void OnTick()
 {
+   bool newBar = IsNewBar();
+
    // Track EA state for dashboard
    bool   eaActive   = true;
    string stopReason = "";
 
    //--- 1. Time Filter
-   if(!g_timeFilter.IsTradeAllowed())
+   bool timeOK = g_timeFilter.IsTradeAllowed();
+   if(!timeOK)
    {
       eaActive   = false;
       stopReason = "Outside trading hours";
@@ -76,21 +93,31 @@ void OnTick()
    }
 
    //--- 2. News Filter
-   if(eaActive && !g_newsFilter.IsTradeAllowed())
+   bool newsOK = true;
+   if(eaActive)
    {
-      eaActive   = false;
-      stopReason = "News event";
-      if(InpCloseBeforeNews)
-         g_tradeMgr.CloseAll();
+      newsOK = g_newsFilter.IsTradeAllowed();
+      if(!newsOK)
+      {
+         eaActive   = false;
+         stopReason = "News event";
+         if(InpCloseBeforeNews)
+            g_tradeMgr.CloseAll();
+      }
    }
 
    //--- 3. Daily Drawdown
-   if(eaActive && g_riskMgr.IsDailyDrawdownExceeded())
+   bool ddOK = true;
+   if(eaActive)
    {
-      eaActive   = false;
-      stopReason = "Daily drawdown limit";
-      if(InpDDAction == DD_CLOSE_ALL)
-         g_tradeMgr.CloseAll();
+      ddOK = !g_riskMgr.IsDailyDrawdownExceeded();
+      if(!ddOK)
+      {
+         eaActive   = false;
+         stopReason = "Daily drawdown limit";
+         if(InpDDAction == DD_CLOSE_ALL)
+            g_tradeMgr.CloseAll();
+      }
    }
 
    //--- 4. Manage existing orders (trailing + break even) - always runs
@@ -101,6 +128,11 @@ void OnTick()
 
    if(eaActive && signal != SIGNAL_NONE)
    {
+      if(InpDebugMode)
+         Print(EA_NAME, ": >>> SIGNAL detected: ", (signal == SIGNAL_BUY ? "BUY" : "SELL"),
+               " | Spread: ", SymbolInfoInteger(_Symbol, SYMBOL_SPREAD),
+               " | Orders: ", g_tradeMgr.CountOpenOrders(), "/", InpMaxOpenOrders);
+
       // Close opposite orders if enabled
       if(InpCloseOnOpposite)
       {
@@ -109,7 +141,10 @@ void OnTick()
       }
 
       // Check order limit and spread
-      if(g_tradeMgr.CountOpenOrders() < InpMaxOpenOrders && g_tradeMgr.IsSpreadOK())
+      bool spreadOK = g_tradeMgr.IsSpreadOK();
+      bool orderLimitOK = (g_tradeMgr.CountOpenOrders() < InpMaxOpenOrders);
+
+      if(orderLimitOK && spreadOK)
       {
          double lotSize = g_riskMgr.CalculateLot();
 
@@ -118,9 +153,36 @@ void OnTick()
          else if(signal == SIGNAL_SELL)
             g_tradeMgr.OpenSell(lotSize, InpStopLoss, InpTakeProfit);
       }
+      else if(InpDebugMode)
+      {
+         if(!spreadOK)    Print(EA_NAME, ": Signal BLOCKED - Spread too high: ", SymbolInfoInteger(_Symbol, SYMBOL_SPREAD), " > ", InpMaxSpread);
+         if(!orderLimitOK) Print(EA_NAME, ": Signal BLOCKED - Max orders reached");
+      }
    }
 
-   //--- 6. Update Dashboard
+   //--- 6. Debug logging on new M5 bar
+   if(newBar && InpDebugMode)
+   {
+      string signalStr = (signal == SIGNAL_BUY) ? "BUY" : (signal == SIGNAL_SELL) ? "SELL" : "NONE";
+      string trendStr  = g_signalMgr.TrendUp ? "UP" : "DOWN";
+
+      Print(EA_NAME, ": --- New Bar ", TimeToString(iTime(_Symbol, PERIOD_M5, 0)), " ---");
+      Print(EA_NAME, ": Filters: Time=", (timeOK ? "OK" : "BLOCKED"),
+            " | News=", (newsOK ? "OK" : "BLOCKED"),
+            " | DD=", (ddOK ? "OK" : "BLOCKED"),
+            " | Active=", (eaActive ? "YES" : "NO"));
+      Print(EA_NAME, ": Trend M15: ", trendStr,
+            " (EMA", InpEmaTrendFast, "=", DoubleToString(g_signalMgr.EmaTrendFastValue, 2),
+            " | EMA", InpEmaTrendSlow, "=", DoubleToString(g_signalMgr.EmaTrendSlowValue, 2), ")");
+      Print(EA_NAME, ": Signal M5: ", signalStr,
+            " (EMA", InpEmaFastPeriod, "=", DoubleToString(g_signalMgr.EmaFastValue, 2),
+            " | EMA", InpEmaSlowPeriod, "=", DoubleToString(g_signalMgr.EmaSlowValue, 2),
+            " | RSI=", DoubleToString(g_signalMgr.RsiValue, 1), ")");
+      Print(EA_NAME, ": Spread=", SymbolInfoInteger(_Symbol, SYMBOL_SPREAD),
+            " | Orders=", g_tradeMgr.CountOpenOrders());
+   }
+
+   //--- 7. Update Dashboard
    UpdateDashboard(eaActive, stopReason, signal);
 }
 
