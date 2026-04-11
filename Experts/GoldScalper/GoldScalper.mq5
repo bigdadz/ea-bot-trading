@@ -61,9 +61,15 @@ int OnInit()
    EventSetTimer(1);
 
    Print(EA_NAME, " v", EA_VERSION, " initialized on ", _Symbol);
-   Print(EA_NAME, ": SL=", InpStopLoss, " pts ($", DoubleToString(InpStopLoss * SymbolInfoDouble(_Symbol, SYMBOL_POINT), 2),
-         ") | TP=", InpTakeProfit, " pts ($", DoubleToString(InpTakeProfit * SymbolInfoDouble(_Symbol, SYMBOL_POINT), 2),
-         ") | MaxSpread=", InpMaxSpread, " pts | POINT=", DoubleToString(SymbolInfoDouble(_Symbol, SYMBOL_POINT), _Digits));
+   if(InpSlTpMode == SLTP_ATR)
+      Print(EA_NAME, ": Mode=ATR | SL=ATR*", DoubleToString(InpAtrSlMultiplier, 1),
+            " | TP=ATR*", DoubleToString(InpAtrTpMultiplier, 1),
+            " | ATR Period=", InpAtrPeriod,
+            " | POINT=", DoubleToString(SymbolInfoDouble(_Symbol, SYMBOL_POINT), _Digits));
+   else
+      Print(EA_NAME, ": Mode=Fixed | SL=", InpStopLoss, " pts ($", DoubleToString(InpStopLoss * SymbolInfoDouble(_Symbol, SYMBOL_POINT), 2),
+            ") | TP=", InpTakeProfit, " pts ($", DoubleToString(InpTakeProfit * SymbolInfoDouble(_Symbol, SYMBOL_POINT), 2),
+            ") | POINT=", DoubleToString(SymbolInfoDouble(_Symbol, SYMBOL_POINT), _Digits));
    return INIT_SUCCEEDED;
 }
 
@@ -123,10 +129,13 @@ void OnTick()
       }
    }
 
-   //--- 4. Manage existing orders (trailing + break even) - always runs
-   g_trailingMgr.ManageOrders();
+   //--- 4. Get ATR value
+   double atrValue = g_signalMgr.GetATR();
 
-   //--- 5. Check signal and open trades (only on new bar to avoid repeated attempts)
+   //--- 5. Manage existing orders (trailing + break even) - always runs
+   g_trailingMgr.ManageOrders(atrValue);
+
+   //--- 6. Check signal and open trades (only on new bar to avoid repeated attempts)
    ENUM_SIGNAL signal = g_signalMgr.CheckSignal();
 
    if(eaActive && signal != SIGNAL_NONE && newBar)
@@ -143,19 +152,33 @@ void OnTick()
          if(signal == SIGNAL_SELL) g_tradeMgr.CloseAllBuy();
       }
 
+      // Calculate SL/TP (dynamic or fixed)
+      int slPoints, tpPoints;
+      if(InpSlTpMode == SLTP_ATR && atrValue > 0)
+      {
+         double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
+         slPoints = (int)(atrValue * InpAtrSlMultiplier / point);
+         tpPoints = (int)(atrValue * InpAtrTpMultiplier / point);
+      }
+      else
+      {
+         slPoints = InpStopLoss;
+         tpPoints = InpTakeProfit;
+      }
+
       // Check order limit, spread, and stops validity
       bool spreadOK = g_tradeMgr.IsSpreadOK();
       bool orderLimitOK = (g_tradeMgr.CountOpenOrders() < InpMaxOpenOrders);
-      bool stopsOK = g_tradeMgr.ValidateStops(InpStopLoss, InpTakeProfit);
+      bool stopsOK = g_tradeMgr.ValidateStops(slPoints, tpPoints);
 
       if(orderLimitOK && spreadOK && stopsOK)
       {
-         double lotSize = g_riskMgr.CalculateLot();
+         double lotSize = g_riskMgr.CalculateLot(slPoints);
 
          if(signal == SIGNAL_BUY)
-            g_tradeMgr.OpenBuy(lotSize, InpStopLoss, InpTakeProfit);
+            g_tradeMgr.OpenBuy(lotSize, slPoints, tpPoints);
          else if(signal == SIGNAL_SELL)
-            g_tradeMgr.OpenSell(lotSize, InpStopLoss, InpTakeProfit);
+            g_tradeMgr.OpenSell(lotSize, slPoints, tpPoints);
       }
       else if(InpDebugMode)
       {
@@ -165,7 +188,7 @@ void OnTick()
       }
    }
 
-   //--- 6. Debug logging on new M5 bar
+   //--- 7. Debug logging on new M5 bar
    if(newBar && InpDebugMode)
    {
       string signalStr = (signal == SIGNAL_BUY) ? "BUY" : (signal == SIGNAL_SELL) ? "SELL" : "NONE";
@@ -185,6 +208,15 @@ void OnTick()
             " | RSI=", DoubleToString(g_signalMgr.RsiValue, 1), ")");
       Print(EA_NAME, ": Spread=", SymbolInfoInteger(_Symbol, SYMBOL_SPREAD),
             " | Orders=", g_tradeMgr.CountOpenOrders());
+      if(InpSlTpMode == SLTP_ATR)
+      {
+         double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
+         int dbgSL = (atrValue > 0) ? (int)(atrValue * InpAtrSlMultiplier / point) : 0;
+         int dbgTP = (atrValue > 0) ? (int)(atrValue * InpAtrTpMultiplier / point) : 0;
+         Print(EA_NAME, ": ATR=$", DoubleToString(atrValue, 2),
+               " | Dynamic SL=", dbgSL, " pts ($", DoubleToString(dbgSL * point, 2),
+               ") | TP=", dbgTP, " pts ($", DoubleToString(dbgTP * point, 2), ")");
+      }
    }
 
    //--- 7. Update Dashboard
@@ -232,6 +264,18 @@ void UpdateDashboard(bool eaActive, string stopReason, ENUM_SIGNAL signal)
    data.nextNewsName  = g_newsFilter.NextNewsName;
    data.nextNewsTime  = g_newsFilter.NextNewsTime;
    data.inTimeWindow  = g_timeFilter.InTimeWindow;
+   data.atrValue  = g_signalMgr.AtrValue;
+   if(InpSlTpMode == SLTP_ATR && g_signalMgr.AtrValue > 0)
+   {
+      double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
+      data.dynamicSL = (int)(g_signalMgr.AtrValue * InpAtrSlMultiplier / point);
+      data.dynamicTP = (int)(g_signalMgr.AtrValue * InpAtrTpMultiplier / point);
+   }
+   else
+   {
+      data.dynamicSL = InpStopLoss;
+      data.dynamicTP = InpTakeProfit;
+   }
 
    g_dashboard.Update(data);
 }
