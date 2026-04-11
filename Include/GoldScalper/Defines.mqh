@@ -54,7 +54,7 @@ input int    InpRsiUpper            = 70;      // RSI Upper Limit
 input int    InpRsiLower            = 30;      // RSI Lower Limit
 input bool   InpUseAdxFilter        = true;    // Use ADX Trend Strength Filter
 input int    InpAdxPeriod           = 14;      // ADX Period
-input int    InpAdxMinLevel         = 20;      // ADX Minimum Level (skip if below)
+input int    InpAdxMinLevel         = 15;      // ADX Minimum Level (skip if below)
 input int              InpAtrPeriod        = 14;       // ATR Period
 input ENUM_SLTP_MODE   InpSlTpMode         = SLTP_ATR; // SL/TP Mode (Fixed or ATR)
 input double           InpAtrSlMultiplier  = 0.5;      // ATR x ? = Stop Loss
