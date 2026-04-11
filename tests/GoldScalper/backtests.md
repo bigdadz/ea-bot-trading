@@ -14,6 +14,7 @@ Symbol: XAUUSD | Timeframe: M5 | Initial Deposit: $1,000.00 | Leverage: 1:500
 | 6 | 100% | 17344 | 33,644,220 | 216 | +$17.33 | 1.30 | 48.15% | 0.82% | Tight stops, small profit |
 | 7 | 100% | 17344 | 33,644,220 | 216 | -$17.88 | 0.96 | 61.57% | 7.15% | Good WR but trailing cuts profit |
 | 8 | 100% | 17344 | 33,644,220 | 202 | -$93.96 | 0.93 | 48.51% | 29.10% | v2.00 ATR mode, SL too wide |
+| 9 | 100% | 17344 | 33,644,220 | 216 | -$9.77 | 0.98 | 44.44% | 12.80% | ATR 0.5/1.5, near breakeven |
 
 ---
 
@@ -296,14 +297,97 @@ Symbol: XAUUSD | Timeframe: M5 | Initial Deposit: $1,000.00 | Leverage: 1:500
 
 **Key finding:** ATR multiplier 1.5 is too high. ATR(14) on XAUUSD M5 already captures large volatility. Need lower multipliers (e.g., SL=ATR*0.5, TP=ATR*1.0) or shorter ATR period to keep SL in scalping range ($3-$5).
 
-| Comparison | Run 6 (Fixed tight) | Run 7 (Fixed wide) | Run 8 (ATR) |
-|------------|--------------------|--------------------|-------------|
-| Total Trades | 216 | 216 | 202 |
-| Net Profit | +$17.33 | -$17.88 | -$93.96 |
-| Profit Factor | 1.30 | 0.96 | 0.93 |
-| Win Rate | 48.15% | 61.57% | 48.51% |
-| Avg Win | $0.72 | $3.00 | $12.36 |
-| Avg Loss | $0.51 | $5.02 | $12.55 |
-| R:R (actual) | 1.41:1 | 0.60:1 | 0.98:1 |
-| Max DD | 0.82% | 7.15% | 29.10% |
-| SL range | $0.50 | $5.00 | $12-$20 |
+| Comparison | Run 6 (Fixed tight) | Run 7 (Fixed wide) | Run 8 (ATR 1.5/3.0) | Run 9 (ATR 0.5/1.5) |
+|------------|--------------------|--------------------|---------------------|---------------------|
+| Total Trades | 216 | 216 | 202 | 216 |
+| Net Profit | +$17.33 | -$17.88 | -$93.96 | **-$9.77** |
+| Profit Factor | 1.30 | 0.96 | 0.93 | **0.98** |
+| Win Rate | 48.15% | 61.57% | 48.51% | 44.44% |
+| Avg Win | $0.72 | $3.00 | $12.36 | **$5.24** |
+| Avg Loss | $0.51 | $5.02 | $12.55 | **$4.27** |
+| R:R (actual) | 1.41:1 | 0.60:1 | 0.98:1 | **1.23:1** |
+| Max DD | 0.82% | 7.15% | 29.10% | **12.80%** |
+| SL range | $0.50 | $5.00 | $12-$20 | **$4-$7** |
+| Avg hold time | - | - | 0:36:40 | **0:06:52** |
+
+---
+
+## Run 9 (v2.00 - ATR Mode, Reduced Multipliers)
+
+| Metric | Value |
+|--------|-------|
+| History Quality | 100% |
+| Bars | 17,344 |
+| Ticks | 33,644,220 |
+| Period | M5 (2026.01.10 - 2026.04.10) |
+| Version | v2.00 (ATR-Based) |
+| InpSlTpMode | 1 (ATR-Based) |
+| ATR Period | 14 |
+| ATR SL Multiplier | **0.5** |
+| ATR TP Multiplier | **1.5** |
+| ATR BE Trigger Multiplier | **0.7** |
+| ATR BE Profit Multiplier | **0.1** |
+| ATR Trail Start Multiplier | **1.0** |
+| ATR Trail Stop Multiplier | **0.3** |
+| ATR Trail Step Multiplier | **0.2** |
+| **Total Net Profit** | **-$9.77** |
+| Gross Profit | $502.75 |
+| Gross Loss | -$512.52 |
+| **Profit Factor** | **0.98** |
+| Recovery Factor | -0.07 |
+| **Sharpe Ratio** | **-1.31** |
+| Expected Payoff | -$0.05 |
+| AHPR | 1.0000 (-0.00%) |
+| GHPR | 1.0000 (-0.00%) |
+| LR Correlation | -0.43 |
+| LR Standard Error | 19.68 |
+| Balance Drawdown Absolute | $55.65 |
+| Balance Drawdown Maximal | $117.83 (11.09%) |
+| Balance Drawdown Relative | 11.09% ($117.83) |
+| Equity Drawdown Absolute | $59.16 |
+| **Equity Drawdown Maximal** | **$138.05 (12.80%)** |
+| Equity Drawdown Relative | 12.80% ($138.05) |
+| Margin Level | 8862.74% |
+| Z-Score | 1.77 (92.33%) |
+| OnTester Result | 0 |
+| **Total Trades** | **216** |
+| Total Deals | 432 |
+| **Short Trades (won %)** | **77 (45.45%)** |
+| **Long Trades (won %)** | **139 (43.88%)** |
+| **Profit Trades (% of total)** | **96 (44.44%)** |
+| **Loss Trades (% of total)** | **120 (55.56%)** |
+| Largest profit trade | $36.25 |
+| Largest loss trade | -$13.19 |
+| Average profit trade | $5.24 |
+| Average loss trade | -$4.27 |
+| Maximum consecutive wins ($) | 5 ($14.10) |
+| Maximum consecutive losses ($) | 9 (-$31.98) |
+| Maximal consecutive profit (count) | $60.33 (4) |
+| Maximal consecutive loss (count) | -$50.67 (8) |
+| Average consecutive wins | 2 |
+| Average consecutive losses | 2 |
+| Min position holding time | 0:00:05 |
+| Max position holding time | 0:38:40 |
+| Avg position holding time | 0:06:52 |
+| Correlation (Profits, MFE) | 0.809 |
+| Correlation (Profits, MAE) | 0.482 |
+| Correlation (MFE, MAE) | 0.001 |
+
+**Settings:** ATR mode with reduced multipliers: SL=ATR*0.5, TP=ATR*1.5 (R:R=1:3). Trail start=ATR*1.0, trail distance=ATR*0.3.
+
+**Observed ATR range:** $8-$13. Dynamic SL=$4-$7, TP=$12-$20.
+
+**Analysis:**
+- **Best ATR run so far.** Near breakeven at -$9.77 (vs -$93.96 in Run 8)
+- R:R favorable at **1.23:1** — avg win $5.24 > avg loss $4.27
+- SL now in scalping range ($4-$7) — avg hold time 6:52 confirms true scalping
+- Win rate dropped to 44.44% — with R:R 1.23:1, needs ~45% to be profitable
+- Expected payoff -$0.05 per trade — almost zero edge, needs slight improvement
+- Max drawdown 12.80% — much better than Run 8 (29.10%)
+- Largest win $36.25 shows big moves still captured
+- 9 consecutive losses observed — streak risk with tight SL
+
+**Key insight:** R:R is now correct. The gap to profitability is ~1% win rate. Possible improvements:
+1. Lower TP multiplier to 1.0 (R:R=1:2, should increase win rate)
+2. Widen trailing distance (ATR*0.5 instead of 0.3) to let winners run longer
+3. Tighten SL multiplier to 0.4 to reduce loss per trade
