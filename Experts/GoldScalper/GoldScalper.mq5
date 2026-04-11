@@ -218,7 +218,8 @@ void OnTick()
             " | EMA", InpEmaSlowPeriod, "=", DoubleToString(g_signalMgr.EmaSlowValue, 2),
             " | RSI=", DoubleToString(g_signalMgr.RsiValue, 1), ")");
       Print(EA_NAME, ": Spread=", SymbolInfoInteger(_Symbol, SYMBOL_SPREAD),
-            " | Orders=", g_tradeMgr.CountOpenOrders());
+            " | Orders=", g_tradeMgr.CountOpenOrders(),
+            (InpUseAdxFilter ? " | ADX=" + DoubleToString(g_signalMgr.AdxValue, 1) : ""));
       if(InpSlTpMode == SLTP_ATR)
       {
          double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);

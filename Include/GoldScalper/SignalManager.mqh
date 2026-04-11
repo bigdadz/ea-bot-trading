@@ -16,6 +16,7 @@ private:
    int    m_emaTrendSlowHandle; // EMA trend slow on M15
    int    m_rsiHandle;          // RSI on M5
    int    m_atrHandle;          // ATR on M5
+   int    m_adxHandle;          // ADX on M5
    string m_symbol;
 
    double m_emaFast[];
@@ -24,6 +25,7 @@ private:
    double m_emaTrendSlow[];
    double m_rsi[];
    double m_atr[];
+   double m_adx[];
 
 public:
    // Public values for dashboard
@@ -34,6 +36,7 @@ public:
    double RsiValue;
    bool   TrendUp;
    double AtrValue;
+   double AdxValue;
 
    bool        Init(string symbol);
    void        Deinit();
@@ -52,10 +55,12 @@ bool CSignalManager::Init(string symbol)
    m_emaTrendSlowHandle = iMA(m_symbol, PERIOD_M15, InpEmaTrendSlow,  0, MODE_EMA, PRICE_CLOSE);
    m_rsiHandle          = iRSI(m_symbol, PERIOD_M5, InpRsiPeriod, PRICE_CLOSE);
    m_atrHandle          = iATR(m_symbol, PERIOD_M5, InpAtrPeriod);
+   m_adxHandle          = iADX(m_symbol, PERIOD_M5, InpAdxPeriod);
 
    if(m_emaFastHandle == INVALID_HANDLE || m_emaSlowHandle == INVALID_HANDLE ||
       m_emaTrendFastHandle == INVALID_HANDLE || m_emaTrendSlowHandle == INVALID_HANDLE ||
-      m_rsiHandle == INVALID_HANDLE || m_atrHandle == INVALID_HANDLE)
+      m_rsiHandle == INVALID_HANDLE || m_atrHandle == INVALID_HANDLE ||
+      m_adxHandle == INVALID_HANDLE)
    {
       Print(EA_NAME, ": Failed to create indicator handles");
       return false;
@@ -67,6 +72,7 @@ bool CSignalManager::Init(string symbol)
    ArraySetAsSeries(m_emaTrendSlow, true);
    ArraySetAsSeries(m_rsi, true);
    ArraySetAsSeries(m_atr, true);
+   ArraySetAsSeries(m_adx, true);
 
    return true;
 }
@@ -80,6 +86,7 @@ void CSignalManager::Deinit()
    if(m_emaTrendSlowHandle != INVALID_HANDLE) IndicatorRelease(m_emaTrendSlowHandle);
    if(m_rsiHandle != INVALID_HANDLE)          IndicatorRelease(m_rsiHandle);
    if(m_atrHandle != INVALID_HANDLE)          IndicatorRelease(m_atrHandle);
+   if(m_adxHandle != INVALID_HANDLE)          IndicatorRelease(m_adxHandle);
 }
 
 //+------------------------------------------------------------------+
@@ -112,12 +119,23 @@ ENUM_SIGNAL CSignalManager::CheckSignal()
    double rsiVal  = m_rsi[1];
    bool rsiInRange = (rsiVal > InpRsiLower && rsiVal < InpRsiUpper);
 
-   // Buy: uptrend + golden cross + RSI in range
-   if(isTrendUp && goldenCross && rsiInRange)
+   // ADX trend strength filter
+   bool adxOK = true;
+   if(InpUseAdxFilter)
+   {
+      if(CopyBuffer(m_adxHandle, 0, 1, 1, m_adx) >= 1)
+      {
+         AdxValue = m_adx[0];
+         adxOK = (AdxValue >= InpAdxMinLevel);
+      }
+   }
+
+   // Buy: uptrend + golden cross + RSI in range + ADX strong
+   if(isTrendUp && goldenCross && rsiInRange && adxOK)
       return SIGNAL_BUY;
 
-   // Sell: downtrend + death cross + RSI in range
-   if(isTrendDown && deathCross && rsiInRange)
+   // Sell: downtrend + death cross + RSI in range + ADX strong
+   if(isTrendDown && deathCross && rsiInRange && adxOK)
       return SIGNAL_SELL;
 
    return SIGNAL_NONE;

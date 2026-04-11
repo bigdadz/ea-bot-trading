@@ -52,11 +52,14 @@ input int    InpEmaTrendSlow        = 200;     // EMA Trend Slow (M15)
 input int    InpRsiPeriod           = 14;      // RSI Period
 input int    InpRsiUpper            = 70;      // RSI Upper Limit
 input int    InpRsiLower            = 30;      // RSI Lower Limit
+input bool   InpUseAdxFilter        = true;    // Use ADX Trend Strength Filter
+input int    InpAdxPeriod           = 14;      // ADX Period
+input int    InpAdxMinLevel         = 20;      // ADX Minimum Level (skip if below)
 input int              InpAtrPeriod        = 14;       // ATR Period
 input ENUM_SLTP_MODE   InpSlTpMode         = SLTP_ATR; // SL/TP Mode (Fixed or ATR)
 input double           InpAtrSlMultiplier  = 0.5;      // ATR x ? = Stop Loss
 input double           InpAtrTpMultiplier  = 1.0;      // ATR x ? = Take Profit
-input int              InpMaxSlPoints      = 8000;     // Max SL Cap (points, 0=no cap) - XAUUSD: 8000=$8
+input int              InpMaxSlPoints      = 0;        // Max SL Cap (points, 0=no cap)
 input int    InpTakeProfit          = 10000;   // Take Profit (points) - XAUUSD: 10000=$10
 input int    InpStopLoss            = 5000;    // Stop Loss (points) - XAUUSD: 5000=$5
 input bool   InpCloseOnOpposite     = true;    // Close On Opposite Signal
