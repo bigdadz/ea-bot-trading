@@ -28,6 +28,7 @@ public:
    int  CountBuyOrders();
    int  CountSellOrders();
    bool IsSpreadOK();
+   bool ValidateStops(int slPoints, int tpPoints);
 };
 
 //+------------------------------------------------------------------+
@@ -199,6 +200,34 @@ bool CTradeManager::IsSpreadOK()
 {
    long spread = SymbolInfoInteger(m_symbol, SYMBOL_SPREAD);
    return (spread <= InpMaxSpread);
+}
+
+//+------------------------------------------------------------------+
+bool CTradeManager::ValidateStops(int slPoints, int tpPoints)
+{
+   long   stopsLevel = SymbolInfoInteger(m_symbol, SYMBOL_TRADE_STOPS_LEVEL);
+   long   spread     = SymbolInfoInteger(m_symbol, SYMBOL_SPREAD);
+   long   minDist    = MathMax(stopsLevel, spread) + 10;  // +10 buffer
+
+   bool valid = true;
+
+   if(slPoints > 0 && slPoints < minDist)
+   {
+      Print(EA_NAME, ": ERROR - StopLoss (", slPoints, " pts) is below minimum distance (",
+            minDist, " pts). StopsLevel=", stopsLevel, " Spread=", spread,
+            ". Did you reset inputs in Strategy Tester? (Right-click Inputs → Reset)");
+      valid = false;
+   }
+
+   if(tpPoints > 0 && tpPoints < minDist)
+   {
+      Print(EA_NAME, ": ERROR - TakeProfit (", tpPoints, " pts) is below minimum distance (",
+            minDist, " pts). StopsLevel=", stopsLevel, " Spread=", spread,
+            ". Did you reset inputs in Strategy Tester? (Right-click Inputs → Reset)");
+      valid = false;
+   }
+
+   return valid;
 }
 
 #endif

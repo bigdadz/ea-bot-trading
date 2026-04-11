@@ -61,6 +61,9 @@ int OnInit()
    EventSetTimer(1);
 
    Print(EA_NAME, " v", EA_VERSION, " initialized on ", _Symbol);
+   Print(EA_NAME, ": SL=", InpStopLoss, " pts ($", DoubleToString(InpStopLoss * SymbolInfoDouble(_Symbol, SYMBOL_POINT), 2),
+         ") | TP=", InpTakeProfit, " pts ($", DoubleToString(InpTakeProfit * SymbolInfoDouble(_Symbol, SYMBOL_POINT), 2),
+         ") | MaxSpread=", InpMaxSpread, " pts | POINT=", DoubleToString(SymbolInfoDouble(_Symbol, SYMBOL_POINT), _Digits));
    return INIT_SUCCEEDED;
 }
 
@@ -123,10 +126,10 @@ void OnTick()
    //--- 4. Manage existing orders (trailing + break even) - always runs
    g_trailingMgr.ManageOrders();
 
-   //--- 5. Check signal and open trades
+   //--- 5. Check signal and open trades (only on new bar to avoid repeated attempts)
    ENUM_SIGNAL signal = g_signalMgr.CheckSignal();
 
-   if(eaActive && signal != SIGNAL_NONE)
+   if(eaActive && signal != SIGNAL_NONE && newBar)
    {
       if(InpDebugMode)
          Print(EA_NAME, ": >>> SIGNAL detected: ", (signal == SIGNAL_BUY ? "BUY" : "SELL"),
@@ -140,11 +143,12 @@ void OnTick()
          if(signal == SIGNAL_SELL) g_tradeMgr.CloseAllBuy();
       }
 
-      // Check order limit and spread
+      // Check order limit, spread, and stops validity
       bool spreadOK = g_tradeMgr.IsSpreadOK();
       bool orderLimitOK = (g_tradeMgr.CountOpenOrders() < InpMaxOpenOrders);
+      bool stopsOK = g_tradeMgr.ValidateStops(InpStopLoss, InpTakeProfit);
 
-      if(orderLimitOK && spreadOK)
+      if(orderLimitOK && spreadOK && stopsOK)
       {
          double lotSize = g_riskMgr.CalculateLot();
 
@@ -155,6 +159,7 @@ void OnTick()
       }
       else if(InpDebugMode)
       {
+         if(!stopsOK)     Print(EA_NAME, ": Signal BLOCKED - SL/TP too small for current market conditions");
          if(!spreadOK)    Print(EA_NAME, ": Signal BLOCKED - Spread too high: ", SymbolInfoInteger(_Symbol, SYMBOL_SPREAD), " > ", InpMaxSpread);
          if(!orderLimitOK) Print(EA_NAME, ": Signal BLOCKED - Max orders reached");
       }
