@@ -58,6 +58,10 @@ Include/GoldScalper/
 ## Gotchas
 
 - **Strategy Tester caches inputs** — Changing defaults in code doesn't auto-update Strategy Tester. User must right-click Inputs tab → Reset.
+- **Verifying POINT at runtime** — OnInit logs actual SL/TP/POINT values. Check this first when backtest shows 0 trades or "invalid stops".
+- **Trade execution is once-per-bar** — `OpenBuy`/`OpenSell` only called when `newBar==true` to prevent log flooding on repeated signal ticks.
+- **ValidateStops()** — Pre-flight check in `TradeManager` verifies SL/TP exceed `SYMBOL_TRADE_STOPS_LEVEL` + spread before sending orders.
+- **Diagnosing POINT from logs** — Calculate: `(ask - bid)` from trade log ÷ spread in points = actual POINT value.
 - **Economic Calendar unavailable in backtest** — `CalendarValueHistory` returns 0 events in Strategy Tester. News filter effectively disabled during backtesting.
 - **Spread on XAUUSD** — Typical spread is 150-300 points ($0.15-$0.30). MaxSpread=300 covers normal conditions. SL/TP must exceed spread to avoid "invalid stops".
 - **Debug logging** — Use new-bar detection (`IsNewBar()`) to log once per M5 bar, not every tick. Toggle via `InpDebugMode`.
