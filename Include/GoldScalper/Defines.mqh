@@ -46,8 +46,8 @@ input int    InpEmaTrendSlow        = 200;     // EMA Trend Slow (M15)
 input int    InpRsiPeriod           = 14;      // RSI Period
 input int    InpRsiUpper            = 70;      // RSI Upper Limit
 input int    InpRsiLower            = 30;      // RSI Lower Limit
-input int    InpTakeProfit          = 100;     // Take Profit (points)
-input int    InpStopLoss            = 50;      // Stop Loss (points)
+input int    InpTakeProfit          = 1000;    // Take Profit (points) - XAUUSD: 1000=$10
+input int    InpStopLoss            = 500;     // Stop Loss (points) - XAUUSD: 500=$5
 input bool   InpCloseOnOpposite     = true;    // Close On Opposite Signal
 
 //--- Input Parameters: Risk Management
@@ -67,15 +67,15 @@ input ENUM_DD_ACTION InpDDAction    = DD_STOP; // Drawdown Action
 //--- Input Parameters: Break Even
 input group "=== Break Even ==="
 input bool   InpUseBreakEven        = true;    // Use Break Even
-input int    InpBreakEvenTrigger    = 30;      // Break Even Trigger (points)
-input int    InpBreakEvenProfit     = 5;       // Break Even Lock Profit (points)
+input int    InpBreakEvenTrigger    = 300;     // Break Even Trigger (points) - XAUUSD: 300=$3
+input int    InpBreakEvenProfit     = 50;      // Break Even Lock Profit (points) - XAUUSD: 50=$0.50
 
 //--- Input Parameters: Trailing Stop
 input group "=== Trailing Stop ==="
 input bool   InpUseTrailingStop     = true;    // Use Trailing Stop
-input int    InpTrailingStart       = 40;      // Trailing Start (points)
-input int    InpTrailingStep        = 10;      // Trailing Step (points)
-input int    InpTrailingStop        = 30;      // Trailing Distance (points)
+input int    InpTrailingStart       = 400;     // Trailing Start (points) - XAUUSD: 400=$4
+input int    InpTrailingStep        = 100;     // Trailing Step (points) - XAUUSD: 100=$1
+input int    InpTrailingStop        = 300;     // Trailing Distance (points) - XAUUSD: 300=$3
 
 //--- Input Parameters: Time Filter
 input group "=== Time Filter ==="
