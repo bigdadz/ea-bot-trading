@@ -18,8 +18,8 @@ Modular design: one orchestrator EA file + 8 independent include modules. All co
 ```
 Experts/GoldScalper/GoldScalper.mq5    # Main EA orchestrator (OnInit/OnTick/OnDeinit)
 Include/GoldScalper/
-├── Defines.mqh          # Enums, constants, all 45 input parameters
-├── SignalManager.mqh    # EMA crossover + RSI signal detection (M5/M15)
+├── Defines.mqh          # Enums, constants, all 48 input parameters
+├── SignalManager.mqh    # EMA crossover + RSI + ADX signal detection (M5/M15) + ATR
 ├── TradeManager.mqh     # Order execution via CTrade (open/close/count)
 ├── RiskManager.mqh      # Lot calculation (fixed/percent) + daily drawdown
 ├── TrailingManager.mqh  # Break even + trailing stop management
@@ -38,7 +38,8 @@ Include/GoldScalper/
 - **Class naming:** `C` prefix (e.g., `CSignalManager`, `CTradeManager`)
 - **Magic number:** `EA_MAGIC = 202604110` — filters EA's own orders from other EAs
 - **Commit style:** `feat:` / `fix:` / `docs:` prefix with descriptive message
-- **ATR Mode (default):** SL/TP/Trailing calculated from ATR(14) x multipliers. Adapts to volatility automatically. Switch to `SLTP_FIXED` to use fixed point values.
+- **ATR Mode (default):** SL/TP/Trailing calculated from ATR(14) x multipliers. Adapts to volatility automatically. Switch to `SLTP_FIXED` to use fixed point values. Optimal multipliers (Run 14): SL=0.5, TP=1.0, BE trigger=0.7, BE profit=0.1, Trail start=0.7, Trail dist=0.3, Trail step=0.2.
+- **ADX Filter (default on):** ADX(14) ≥ 15 required for signal. Filters sideways markets. ADX≥20 over-filters on M5 XAUUSD.
 
 ## OnTick Execution Flow
 
@@ -70,6 +71,8 @@ Include/GoldScalper/
 - **Debug logging** — Use new-bar detection (`IsNewBar()`) to log once per M5 bar, not every tick. Toggle via `InpDebugMode`.
 - **ATR in backtest** — ATR calculates from historical data and works correctly in Strategy Tester (unlike NewsFilter). First ~14 bars may have unstable ATR values as the indicator warms up.
 - **RiskManager uses dynamic SL** — In ATR mode, lot sizing is based on the ATR-calculated SL, not InpStopLoss. This ensures risk percentage is accurate regardless of mode.
+- **ATR multiplier sensitivity** — ATR(14) on XAUUSD M5 = $8-$13. Use small multipliers: SL=0.5 (~$4-7), not 1.5 (~$12-20). Large SL turns scalper into swing trader with 29% DD (Run 8). Max SL cap is counterproductive (Run 12).
+- **Deploy script** — Run `./deploy.sh` to copy EA files to MT5. After deploy: MetaEditor → Compile (F7) → Strategy Tester → Right-click Inputs → Reset.
 
 ## Design Docs
 
@@ -77,3 +80,9 @@ Include/GoldScalper/
 - Plan: `docs/superpowers/plans/2026-04-11-gold-scalper.md`
 - ATR Spec: `docs/superpowers/specs/2026-04-11-atr-dynamic-sltp-design.md`
 - ATR Plan: `docs/superpowers/plans/2026-04-11-atr-dynamic-sltp.md`
+
+## Backtest Results
+
+Best result: Run 14 (tag `backtest-14`) — +$45.39, PF=1.10, Sharpe=7.66, DD=6.90%, 202 trades, WR=44.55%
+Full results: `tests/GoldScalper/backtests.md`
+Parse xlsx: `python3 -c "import openpyxl; ..."` (openpyxl installed)
