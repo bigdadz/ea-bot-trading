@@ -30,6 +30,8 @@ Include/GoldScalper/
 
 ## Key Conventions
 
+- **XAUUSD Point Values:** Exness uses `SYMBOL_POINT=0.01` (2-digit pricing). All point-based parameters must account for this: 100 points = $1.00. A $5 SL = 500 points, not 50.
+- **MQL5 only:** Do not use `#property strict` (MQL4 only). Use string literals in `#property copyright`, not macros.
 - **Include paths:** Use angle brackets `#include <GoldScalper/...>` (references MQL5 Include directory)
 - **Header guards:** `#ifndef FILENAME_MQH` pattern in all `.mqh` files
 - **Input parameters:** All centralized in `Defines.mqh`, prefixed with `Inp` (e.g., `InpStopLoss`)
@@ -52,6 +54,13 @@ Include/GoldScalper/
 2. Copy `Include/GoldScalper/` to `MQL5/Include/`
 3. Compile in MetaEditor (F7)
 4. Attach to XAUUSD M5 chart
+
+## Gotchas
+
+- **Strategy Tester caches inputs** — Changing defaults in code doesn't auto-update Strategy Tester. User must right-click Inputs tab → Reset.
+- **Economic Calendar unavailable in backtest** — `CalendarValueHistory` returns 0 events in Strategy Tester. News filter effectively disabled during backtesting.
+- **Spread on XAUUSD** — Typical spread is 150-300 points ($1.50-$3.00). MaxSpread must be ≥300. SL/TP must exceed spread to avoid "invalid stops".
+- **Debug logging** — Use new-bar detection (`IsNewBar()`) to log once per M5 bar, not every tick. Toggle via `InpDebugMode`.
 
 ## Design Docs
 
