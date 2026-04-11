@@ -45,9 +45,11 @@ Include/GoldScalper/
 1. Time Filter → block if outside trading hours
 2. News Filter → block if near USD news events
 3. Daily Drawdown → block if loss limit exceeded
-4. Trailing/Break Even management (always runs)
-5. Signal detection → lot sizing → open trade
-6. Dashboard update
+4. Get ATR value from SignalManager
+5. Trailing/Break Even management (ATR-based, always runs)
+6. Signal detection → compute dynamic SL/TP → lot sizing → open trade
+7. Debug logging (new bar only)
+8. Dashboard update
 
 ## Deployment
 
@@ -73,3 +75,5 @@ Include/GoldScalper/
 
 - Spec: `docs/superpowers/specs/2026-04-11-gold-scalper-design.md`
 - Plan: `docs/superpowers/plans/2026-04-11-gold-scalper.md`
+- ATR Spec: `docs/superpowers/specs/2026-04-11-atr-dynamic-sltp-design.md`
+- ATR Plan: `docs/superpowers/plans/2026-04-11-atr-dynamic-sltp.md`

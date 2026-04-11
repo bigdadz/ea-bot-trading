@@ -159,6 +159,13 @@ void OnTick()
          double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
          slPoints = (int)(atrValue * InpAtrSlMultiplier / point);
          tpPoints = (int)(atrValue * InpAtrTpMultiplier / point);
+
+         // Safety: clamp to minimum distance (STOPS_LEVEL + spread + buffer)
+         long stopsLevel = SymbolInfoInteger(_Symbol, SYMBOL_TRADE_STOPS_LEVEL);
+         long spread     = SymbolInfoInteger(_Symbol, SYMBOL_SPREAD);
+         int  minDist    = (int)(MathMax(stopsLevel, spread) + 10);
+         if(slPoints < minDist) slPoints = minDist;
+         if(tpPoints < minDist) tpPoints = minDist;
       }
       else
       {
@@ -219,7 +226,7 @@ void OnTick()
       }
    }
 
-   //--- 7. Update Dashboard
+   //--- 8. Update Dashboard
    UpdateDashboard(eaActive, stopReason, signal);
 }
 
