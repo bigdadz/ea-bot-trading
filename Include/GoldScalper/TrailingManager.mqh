@@ -19,6 +19,7 @@ private:
    // Track positions that already had break even applied
    ulong  m_beApplied[];
    int    m_beCount;
+   double m_lastATR;
 
    bool IsBreakEvenApplied(ulong ticket);
    void MarkBreakEvenApplied(ulong ticket);
@@ -27,7 +28,7 @@ private:
 
 public:
    bool Init(string symbol);
-   void ManageOrders();
+   void ManageOrders(double atrValue = 0);
 };
 
 //+------------------------------------------------------------------+
@@ -37,6 +38,7 @@ bool CTrailingManager::Init(string symbol)
    m_trade.SetExpertMagicNumber(EA_MAGIC);
    m_beCount = 0;
    ArrayResize(m_beApplied, 0);
+   m_lastATR = 0;
    return true;
 }
 
@@ -70,11 +72,19 @@ void CTrailingManager::ApplyBreakEven(ulong ticket, ENUM_POSITION_TYPE type, dou
    double bid   = SymbolInfoDouble(m_symbol, SYMBOL_BID);
    double ask   = SymbolInfoDouble(m_symbol, SYMBOL_ASK);
 
+   // Use ATR-based or fixed BE parameters
+   double beTrigger = m_lastATR > 0
+      ? m_lastATR * InpAtrBeMultiplier / point
+      : InpBreakEvenTrigger;
+   double beProfit = m_lastATR > 0
+      ? m_lastATR * InpAtrBeProfitMultiplier / point
+      : InpBreakEvenProfit;
+
    if(type == POSITION_TYPE_BUY)
    {
-      if((bid - openPrice) >= InpBreakEvenTrigger * point)
+      if((bid - openPrice) >= beTrigger * point)
       {
-         double newSL = NormalizeDouble(openPrice + InpBreakEvenProfit * point, digits);
+         double newSL = NormalizeDouble(openPrice + beProfit * point, digits);
          double tp    = PositionGetDouble(POSITION_TP);
          if(m_trade.PositionModify(ticket, newSL, tp))
             MarkBreakEvenApplied(ticket);
@@ -82,9 +92,9 @@ void CTrailingManager::ApplyBreakEven(ulong ticket, ENUM_POSITION_TYPE type, dou
    }
    else if(type == POSITION_TYPE_SELL)
    {
-      if((openPrice - ask) >= InpBreakEvenTrigger * point)
+      if((openPrice - ask) >= beTrigger * point)
       {
-         double newSL = NormalizeDouble(openPrice - InpBreakEvenProfit * point, digits);
+         double newSL = NormalizeDouble(openPrice - beProfit * point, digits);
          double tp    = PositionGetDouble(POSITION_TP);
          if(m_trade.PositionModify(ticket, newSL, tp))
             MarkBreakEvenApplied(ticket);
@@ -103,14 +113,24 @@ void CTrailingManager::ApplyTrailingStop(ulong ticket, ENUM_POSITION_TYPE type, 
    double bid   = SymbolInfoDouble(m_symbol, SYMBOL_BID);
    double ask   = SymbolInfoDouble(m_symbol, SYMBOL_ASK);
 
+   // Use ATR-based or fixed trailing parameters
+   double trailStart = m_lastATR > 0
+      ? m_lastATR * InpAtrTrailStartMultiplier / point
+      : InpTrailingStart;
+   double trailStop = m_lastATR > 0
+      ? m_lastATR * InpAtrTrailStopMultiplier / point
+      : InpTrailingStop;
+   double trailStep = m_lastATR > 0
+      ? m_lastATR * InpAtrTrailStepMultiplier / point
+      : InpTrailingStep;
+
    if(type == POSITION_TYPE_BUY)
    {
       double profit = bid - openPrice;
-      if(profit >= InpTrailingStart * point)
+      if(profit >= trailStart * point)
       {
-         double newSL = NormalizeDouble(bid - InpTrailingStop * point, digits);
-         // Only move SL up, never down. Must move at least TrailingStep.
-         if(newSL > currentSL + InpTrailingStep * point)
+         double newSL = NormalizeDouble(bid - trailStop * point, digits);
+         if(newSL > currentSL + trailStep * point)
          {
             double tp = PositionGetDouble(POSITION_TP);
             m_trade.PositionModify(ticket, newSL, tp);
@@ -120,11 +140,10 @@ void CTrailingManager::ApplyTrailingStop(ulong ticket, ENUM_POSITION_TYPE type, 
    else if(type == POSITION_TYPE_SELL)
    {
       double profit = openPrice - ask;
-      if(profit >= InpTrailingStart * point)
+      if(profit >= trailStart * point)
       {
-         double newSL = NormalizeDouble(ask + InpTrailingStop * point, digits);
-         // Only move SL down, never up.
-         if(currentSL == 0 || newSL < currentSL - InpTrailingStep * point)
+         double newSL = NormalizeDouble(ask + trailStop * point, digits);
+         if(currentSL == 0 || newSL < currentSL - trailStep * point)
          {
             double tp = PositionGetDouble(POSITION_TP);
             m_trade.PositionModify(ticket, newSL, tp);
@@ -134,8 +153,10 @@ void CTrailingManager::ApplyTrailingStop(ulong ticket, ENUM_POSITION_TYPE type, 
 }
 
 //+------------------------------------------------------------------+
-void CTrailingManager::ManageOrders()
+void CTrailingManager::ManageOrders(double atrValue)
 {
+   m_lastATR = (InpSlTpMode == SLTP_ATR) ? atrValue : 0;
+
    for(int i = PositionsTotal() - 1; i >= 0; i--)
    {
       if(m_position.SelectByIndex(i))
@@ -148,14 +169,11 @@ void CTrailingManager::ManageOrders()
          double             openPrice = m_position.PriceOpen();
          double             currentSL = m_position.StopLoss();
 
-         // Step 1: Break Even first
          ApplyBreakEven(ticket, type, openPrice);
 
-         // Refresh SL after potential BE modification
          if(m_position.SelectByIndex(i))
             currentSL = m_position.StopLoss();
 
-         // Step 2: Trailing Stop (can override BE SL when price moves further)
          ApplyTrailingStop(ticket, type, openPrice, currentSL);
       }
    }
