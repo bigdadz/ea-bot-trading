@@ -56,7 +56,7 @@ input ENUM_LOT_MODE InpLotMode      = LOT_FIXED;  // Lot Mode
 input double InpFixedLot            = 0.01;    // Fixed Lot Size
 input double InpRiskPercent         = 1.0;     // Risk Percent per Trade
 input int    InpMaxOpenOrders       = 3;       // Max Open Orders
-input int    InpMaxSpread           = 30;      // Max Spread (points)
+input int    InpMaxSpread           = 300;     // Max Spread (points) - XAUUSD typical: 100-300
 
 //--- Input Parameters: Daily Drawdown
 input group "=== Daily Drawdown ==="
