@@ -25,7 +25,7 @@ public:
    bool   IsStopped;
 
    bool   Init(string symbol);
-   double CalculateLot();
+   double CalculateLot(int slPoints);
    bool   IsDailyDrawdownExceeded();
    void   UpdateDailyStats();
 };
@@ -66,7 +66,7 @@ void CRiskManager::CheckNewDay()
 }
 
 //+------------------------------------------------------------------+
-double CRiskManager::CalculateLot()
+double CRiskManager::CalculateLot(int slPoints)
 {
    double lotSize = InpFixedLot;
 
@@ -77,11 +77,11 @@ double CRiskManager::CalculateLot()
       double tickSize  = SymbolInfoDouble(m_symbol, SYMBOL_TRADE_TICK_SIZE);
       double point     = SymbolInfoDouble(m_symbol, SYMBOL_POINT);
 
-      if(tickValue <= 0 || InpStopLoss <= 0 || tickSize <= 0)
+      if(tickValue <= 0 || slPoints <= 0 || tickSize <= 0)
          return InpFixedLot;
 
       double riskMoney = balance * InpRiskPercent / 100.0;
-      double slMoney   = InpStopLoss * point / tickSize * tickValue;
+      double slMoney   = slPoints * point / tickSize * tickValue;
 
       if(slMoney > 0)
          lotSize = riskMoney / slMoney;
