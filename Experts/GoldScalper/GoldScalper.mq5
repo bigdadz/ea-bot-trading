@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright   "GoldScalper"
 #property link        ""
-#property version     "2.0.0"
+#property version     "2.00"
 #property description "Scalping EA for XAUUSD using Multi-timeframe EMA + RSI"
 
 #include <GoldScalper/Defines.mqh>
