@@ -30,6 +30,9 @@ struct SDashboardData
    string      nextNewsName;
    datetime    nextNewsTime;
    bool        inTimeWindow;
+   double      atrValue;
+   int         dynamicSL;
+   int         dynamicTP;
 };
 
 class CDashboard
@@ -136,6 +139,28 @@ void CDashboard::Update(const SDashboardData &data)
    CreateLabel("spread", x, y,
       StringFormat("Spread: %d / %d", data.currentSpread, data.maxSpread),
       spClr);
+   y += m_lineHeight;
+
+   // ATR & Dynamic SL/TP
+   if(InpSlTpMode == SLTP_ATR)
+   {
+      double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
+      CreateLabel("atr", x, y,
+         StringFormat("ATR: $%.2f  |  SL: $%.2f (%d pts)  |  TP: $%.2f (%d pts)",
+            data.atrValue,
+            data.dynamicSL * point, data.dynamicSL,
+            data.dynamicTP * point, data.dynamicTP),
+         clrCyan);
+   }
+   else
+   {
+      double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
+      CreateLabel("atr", x, y,
+         StringFormat("Mode: Fixed  |  SL: $%.2f (%d pts)  |  TP: $%.2f (%d pts)",
+            InpStopLoss * point, InpStopLoss,
+            InpTakeProfit * point, InpTakeProfit),
+         clrWhite);
+   }
    y += m_lineHeight;
 
    // Trend M15
