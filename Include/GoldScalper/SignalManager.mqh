@@ -15,6 +15,7 @@ private:
    int    m_emaTrendFastHandle; // EMA trend fast on M15
    int    m_emaTrendSlowHandle; // EMA trend slow on M15
    int    m_rsiHandle;          // RSI on M5
+   int    m_atrHandle;          // ATR on M5
    string m_symbol;
 
    double m_emaFast[];
@@ -22,6 +23,7 @@ private:
    double m_emaTrendFast[];
    double m_emaTrendSlow[];
    double m_rsi[];
+   double m_atr[];
 
 public:
    // Public values for dashboard
@@ -31,10 +33,12 @@ public:
    double EmaTrendSlowValue;
    double RsiValue;
    bool   TrendUp;
+   double AtrValue;
 
    bool        Init(string symbol);
    void        Deinit();
    ENUM_SIGNAL CheckSignal();
+   double      GetATR();
 };
 
 //+------------------------------------------------------------------+
@@ -47,10 +51,11 @@ bool CSignalManager::Init(string symbol)
    m_emaTrendFastHandle = iMA(m_symbol, PERIOD_M15, InpEmaTrendFast,  0, MODE_EMA, PRICE_CLOSE);
    m_emaTrendSlowHandle = iMA(m_symbol, PERIOD_M15, InpEmaTrendSlow,  0, MODE_EMA, PRICE_CLOSE);
    m_rsiHandle          = iRSI(m_symbol, PERIOD_M5, InpRsiPeriod, PRICE_CLOSE);
+   m_atrHandle          = iATR(m_symbol, PERIOD_M5, InpAtrPeriod);
 
    if(m_emaFastHandle == INVALID_HANDLE || m_emaSlowHandle == INVALID_HANDLE ||
       m_emaTrendFastHandle == INVALID_HANDLE || m_emaTrendSlowHandle == INVALID_HANDLE ||
-      m_rsiHandle == INVALID_HANDLE)
+      m_rsiHandle == INVALID_HANDLE || m_atrHandle == INVALID_HANDLE)
    {
       Print(EA_NAME, ": Failed to create indicator handles");
       return false;
@@ -61,6 +66,7 @@ bool CSignalManager::Init(string symbol)
    ArraySetAsSeries(m_emaTrendFast, true);
    ArraySetAsSeries(m_emaTrendSlow, true);
    ArraySetAsSeries(m_rsi, true);
+   ArraySetAsSeries(m_atr, true);
 
    return true;
 }
@@ -73,6 +79,7 @@ void CSignalManager::Deinit()
    if(m_emaTrendFastHandle != INVALID_HANDLE) IndicatorRelease(m_emaTrendFastHandle);
    if(m_emaTrendSlowHandle != INVALID_HANDLE) IndicatorRelease(m_emaTrendSlowHandle);
    if(m_rsiHandle != INVALID_HANDLE)          IndicatorRelease(m_rsiHandle);
+   if(m_atrHandle != INVALID_HANDLE)          IndicatorRelease(m_atrHandle);
 }
 
 //+------------------------------------------------------------------+
@@ -114,6 +121,18 @@ ENUM_SIGNAL CSignalManager::CheckSignal()
       return SIGNAL_SELL;
 
    return SIGNAL_NONE;
+}
+
+//+------------------------------------------------------------------+
+double CSignalManager::GetATR()
+{
+   if(CopyBuffer(m_atrHandle, 0, 1, 1, m_atr) < 1)
+   {
+      AtrValue = 0;
+      return 0;
+   }
+   AtrValue = m_atr[0];  // ATR of last completed bar
+   return AtrValue;
 }
 
 #endif
