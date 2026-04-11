@@ -18,7 +18,7 @@ Modular design: one orchestrator EA file + 8 independent include modules. All co
 ```
 Experts/GoldScalper/GoldScalper.mq5    # Main EA orchestrator (OnInit/OnTick/OnDeinit)
 Include/GoldScalper/
-├── Defines.mqh          # Enums, constants, all 36 input parameters
+├── Defines.mqh          # Enums, constants, all 45 input parameters
 ├── SignalManager.mqh    # EMA crossover + RSI signal detection (M5/M15)
 ├── TradeManager.mqh     # Order execution via CTrade (open/close/count)
 ├── RiskManager.mqh      # Lot calculation (fixed/percent) + daily drawdown
@@ -38,6 +38,7 @@ Include/GoldScalper/
 - **Class naming:** `C` prefix (e.g., `CSignalManager`, `CTradeManager`)
 - **Magic number:** `EA_MAGIC = 202604110` — filters EA's own orders from other EAs
 - **Commit style:** `feat:` / `fix:` / `docs:` prefix with descriptive message
+- **ATR Mode (default):** SL/TP/Trailing calculated from ATR(14) x multipliers. Adapts to volatility automatically. Switch to `SLTP_FIXED` to use fixed point values.
 
 ## OnTick Execution Flow
 
@@ -65,6 +66,8 @@ Include/GoldScalper/
 - **Economic Calendar unavailable in backtest** — `CalendarValueHistory` returns 0 events in Strategy Tester. News filter effectively disabled during backtesting.
 - **Spread on XAUUSD** — Typical spread is 150-300 points ($0.15-$0.30). MaxSpread=300 covers normal conditions. SL/TP must exceed spread to avoid "invalid stops".
 - **Debug logging** — Use new-bar detection (`IsNewBar()`) to log once per M5 bar, not every tick. Toggle via `InpDebugMode`.
+- **ATR in backtest** — ATR calculates from historical data and works correctly in Strategy Tester (unlike NewsFilter). First ~14 bars may have unstable ATR values as the indicator warms up.
+- **RiskManager uses dynamic SL** — In ATR mode, lot sizing is based on the ATR-calculated SL, not InpStopLoss. This ensures risk percentage is accurate regardless of mode.
 
 ## Design Docs
 
