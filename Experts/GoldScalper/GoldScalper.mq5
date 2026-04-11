@@ -166,6 +166,10 @@ void OnTick()
          int  minDist    = (int)(MathMax(stopsLevel, spread) + 10);
          if(slPoints < minDist) slPoints = minDist;
          if(tpPoints < minDist) tpPoints = minDist;
+
+         // Cap SL to prevent outlier losses during high-volatility spikes
+         if(InpMaxSlPoints > 0 && slPoints > InpMaxSlPoints)
+            slPoints = InpMaxSlPoints;
       }
       else
       {

@@ -56,6 +56,7 @@ input int              InpAtrPeriod        = 14;       // ATR Period
 input ENUM_SLTP_MODE   InpSlTpMode         = SLTP_ATR; // SL/TP Mode (Fixed or ATR)
 input double           InpAtrSlMultiplier  = 0.5;      // ATR x ? = Stop Loss
 input double           InpAtrTpMultiplier  = 1.0;      // ATR x ? = Take Profit
+input int              InpMaxSlPoints      = 8000;     // Max SL Cap (points, 0=no cap) - XAUUSD: 8000=$8
 input int    InpTakeProfit          = 10000;   // Take Profit (points) - XAUUSD: 10000=$10
 input int    InpStopLoss            = 5000;    // Stop Loss (points) - XAUUSD: 5000=$5
 input bool   InpCloseOnOpposite     = true;    // Close On Opposite Signal
@@ -79,7 +80,7 @@ input group "=== Break Even ==="
 input bool   InpUseBreakEven        = true;    // Use Break Even
 input int    InpBreakEvenTrigger    = 3000;    // Break Even Trigger (points) - XAUUSD: 3000=$3
 input int    InpBreakEvenProfit     = 500;     // Break Even Lock Profit (points) - XAUUSD: 500=$0.50
-input double InpAtrBeMultiplier       = 0.7;    // ATR x ? = BE Trigger (ATR mode)
+input double InpAtrBeMultiplier       = 0.8;    // ATR x ? = BE Trigger (ATR mode)
 input double InpAtrBeProfitMultiplier = 0.1;    // ATR x ? = BE Profit Lock (ATR mode)
 
 //--- Input Parameters: Trailing Stop
@@ -89,7 +90,7 @@ input int    InpTrailingStart       = 4000;    // Trailing Start (points) - XAUU
 input int    InpTrailingStep        = 1000;    // Trailing Step (points) - XAUUSD: 1000=$1
 input int    InpTrailingStop        = 3000;    // Trailing Distance (points) - XAUUSD: 3000=$3
 input double InpAtrTrailStartMultiplier = 0.7;  // ATR x ? = Trail Start (ATR mode)
-input double InpAtrTrailStopMultiplier  = 0.3;  // ATR x ? = Trail Distance (ATR mode)
+input double InpAtrTrailStopMultiplier  = 0.4;  // ATR x ? = Trail Distance (ATR mode)
 input double InpAtrTrailStepMultiplier  = 0.2;  // ATR x ? = Trail Step (ATR mode)
 
 //--- Input Parameters: Time Filter
