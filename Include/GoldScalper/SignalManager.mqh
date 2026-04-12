@@ -131,8 +131,8 @@ ENUM_SIGNAL CSignalManager::CheckSignal()
    }
 
    // RSI directional confirmation
-   bool rsiBullish = (rsiVal > 50);
-   bool rsiBearish = (rsiVal < 50);
+   bool rsiBullish = (rsiVal > InpRsiBullThreshold);
+   bool rsiBearish = (rsiVal < InpRsiBearThreshold);
 
    // Buy: uptrend + golden cross + RSI in range + RSI bullish + ADX strong
    if(isTrendUp && goldenCross && rsiInRange && rsiBullish && adxOK)
