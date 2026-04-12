@@ -54,7 +54,7 @@ input int    InpRsiUpper            = 70;      // RSI Upper Limit
 input int    InpRsiLower            = 30;      // RSI Lower Limit
 input int    InpRsiBullThreshold    = 50;      // RSI Bull Threshold (Buy only if RSI >)
 input int    InpRsiBearThreshold    = 50;      // RSI Bear Threshold (Sell only if RSI <)
-input bool   InpUseEmaGapFilter     = true;    // Use EMA Gap Filter
+input bool   InpUseEmaGapFilter     = false;   // Use EMA Gap Filter
 input double InpEmaGapAtrMult       = 0.2;     // Min |EMA9-EMA21| = ATR x ?
 input bool   InpUseAdxFilter        = true;    // Use ADX Trend Strength Filter
 input int    InpAdxPeriod           = 14;      // ADX Period
@@ -103,9 +103,9 @@ input double InpAtrTrailStepMultiplier  = 0.2;  // ATR x ? = Trail Step (ATR mod
 //--- Input Parameters: Time Filter
 input group "=== Time Filter ==="
 input bool   InpUseTimeFilter       = true;    // Use Time Filter
-input int    InpTradeStartHour      = 8;       // Trade Start Hour
+input int    InpTradeStartHour      = 13;      // Trade Start Hour
 input int    InpTradeStartMinute    = 0;       // Trade Start Minute
-input int    InpTradeEndHour        = 20;      // Trade End Hour
+input int    InpTradeEndHour        = 17;      // Trade End Hour
 input int    InpTradeEndMinute      = 0;       // Trade End Minute
 input bool   InpCloseOutsideTime    = false;   // Close Orders Outside Time
 
