@@ -71,7 +71,7 @@ input bool   InpCloseOnOpposite     = true;    // Close On Opposite Signal
 //--- Input Parameters: Risk Management
 input group "=== Risk Management ==="
 input ENUM_LOT_MODE InpLotMode      = LOT_FIXED;  // Lot Mode
-input double InpFixedLot            = 0.01;    // Fixed Lot Size
+input double InpFixedLot            = 0.02;    // Fixed Lot Size
 input double InpRiskPercent         = 1.0;     // Risk Percent per Trade
 input int    InpMaxOpenOrders       = 3;       // Max Open Orders
 input int    InpMaxSpread           = 300;     // Max Spread (points) - XAUUSD typical: 150-300 ($0.15-$0.30)
@@ -79,7 +79,7 @@ input int    InpMaxSpread           = 300;     // Max Spread (points) - XAUUSD t
 //--- Input Parameters: Daily Drawdown
 input group "=== Daily Drawdown ==="
 input bool   InpUseDailyDrawdown    = true;    // Use Daily Drawdown Limit
-input double InpMaxDailyDDPercent   = 3.0;     // Max Daily Drawdown (%)
+input double InpMaxDailyDDPercent   = 5.0;     // Max Daily Drawdown (%)
 input ENUM_DD_ACTION InpDDAction    = DD_STOP; // Drawdown Action
 
 //--- Input Parameters: Break Even
