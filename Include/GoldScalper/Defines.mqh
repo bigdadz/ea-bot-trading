@@ -54,6 +54,8 @@ input int    InpRsiUpper            = 70;      // RSI Upper Limit
 input int    InpRsiLower            = 30;      // RSI Lower Limit
 input int    InpRsiBullThreshold    = 55;      // RSI Bull Threshold (Buy only if RSI >)
 input int    InpRsiBearThreshold    = 45;      // RSI Bear Threshold (Sell only if RSI <)
+input bool   InpUseEmaGapFilter     = true;    // Use EMA Gap Filter
+input double InpEmaGapAtrMult       = 0.1;     // Min |EMA9-EMA21| = ATR x ?
 input bool   InpUseAdxFilter        = true;    // Use ADX Trend Strength Filter
 input int    InpAdxPeriod           = 14;      // ADX Period
 input int    InpAdxMinLevel         = 15;      // ADX Minimum Level (skip if below)

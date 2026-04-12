@@ -134,12 +134,21 @@ ENUM_SIGNAL CSignalManager::CheckSignal()
    bool rsiBullish = (rsiVal > InpRsiBullThreshold);
    bool rsiBearish = (rsiVal < InpRsiBearThreshold);
 
-   // Buy: uptrend + golden cross + RSI in range + RSI bullish + ADX strong
-   if(isTrendUp && goldenCross && rsiInRange && rsiBullish && adxOK)
+   // EMA gap filter: require minimum separation to avoid whipsaw near crossover
+   bool emaGapOK = true;
+   if(InpUseEmaGapFilter && AtrValue > 0)
+   {
+      double emaGap = MathAbs(m_emaFast[1] - m_emaSlow[1]);
+      double minGap = AtrValue * InpEmaGapAtrMult;
+      emaGapOK = (emaGap >= minGap);
+   }
+
+   // Buy: uptrend + golden cross + RSI in range + RSI bullish + EMA gap + ADX strong
+   if(isTrendUp && goldenCross && rsiInRange && rsiBullish && emaGapOK && adxOK)
       return SIGNAL_BUY;
 
-   // Sell: downtrend + death cross + RSI in range + RSI bearish + ADX strong
-   if(isTrendDown && deathCross && rsiInRange && rsiBearish && adxOK)
+   // Sell: downtrend + death cross + RSI in range + RSI bearish + EMA gap + ADX strong
+   if(isTrendDown && deathCross && rsiInRange && rsiBearish && emaGapOK && adxOK)
       return SIGNAL_SELL;
 
    return SIGNAL_NONE;
