@@ -40,6 +40,7 @@ Include/GoldScalper/
 - **Commit style:** `feat:` / `fix:` / `docs:` prefix with descriptive message
 - **ATR Mode (default):** SL/TP/Trailing calculated from ATR(14) x multipliers. Adapts to volatility automatically. Switch to `SLTP_FIXED` to use fixed point values. Optimal multipliers (Run 14): SL=0.5, TP=1.0, BE trigger=0.7, BE profit=0.1, Trail start=0.7, Trail dist=0.3, Trail step=0.2.
 - **ADX Filter (default on):** ADX(14) ≥ 15 required for signal. Filters sideways markets. ADX≥20 over-filters on M5 XAUUSD.
+- **Time Window (optimal):** 13:00-17:00 server time (London+NY overlap). Narrower than 8:00-20:00 drops total trades 68% but doubles Sharpe, improves PF and DD. Short bias during this window (56% WR shorts vs 40% longs).
 
 ## OnTick Execution Flow
 
@@ -73,6 +74,10 @@ Include/GoldScalper/
 - **RiskManager uses dynamic SL** — In ATR mode, lot sizing is based on the ATR-calculated SL, not InpStopLoss. This ensures risk percentage is accurate regardless of mode.
 - **ATR multiplier sensitivity** — ATR(14) on XAUUSD M5 = $8-$13. Use small multipliers: SL=0.5 (~$4-7), not 1.5 (~$12-20). Large SL turns scalper into swing trader with 29% DD (Run 8). Max SL cap is counterproductive (Run 12).
 - **Deploy script** — Run `./deploy.sh` to copy EA files to MT5. After deploy: MetaEditor → Compile (F7) → Strategy Tester → Right-click Inputs → Reset.
+- **Verify inputs in xlsx** — When a new input/filter has zero effect, check the `Inputs:` section of the Strategy Tester xlsx report. If new inputs are missing, EA wasn't recompiled. Fix: MetaEditor → F7 → Reset inputs.
+- **EMA gap filter at crossover bar is structurally flawed** — The gap is inherently small at bar[1] right after crossover. Filter either does nothing (0.1*ATR) or kills all signals (0.2*ATR). Use ADX instead for signal strength.
+- **RSI directional is redundant with EMA cross** — At golden cross, RSI is already >50. Filter at 50/55 has zero effect on signal count. RSI range filter (30-70) is more useful.
+- **Lot scaling is linear** — Doubling lot (0.01→0.02) exactly doubles profit, DD, avg win, and avg loss. Must raise `InpMaxDailyDDPercent` proportionally or daily DD trip will halt trading.
 
 ## Design Docs
 
@@ -83,6 +88,7 @@ Include/GoldScalper/
 
 ## Backtest Results
 
-Best result: Run 14 (tag `backtest-14`) — +$45.39, PF=1.10, Sharpe=7.66, DD=6.90%, 202 trades, WR=44.55%
-Full results: `tests/GoldScalper/backtests.md`
+Best result: Run 23 (tag `backtest-23`) — +$79.03, PF=1.22, Sharpe=16.94, DD=8.42%, 65 trades, WR=46.15% (0.02 lot, 13-17 window)
+Previous: Run 14 (tag `backtest-14`) — +$45.39, PF=1.10, 202 trades, 8-20 window
+Full results: `tests/GoldScalper/backtests.md` and `tests/GoldScalper/results.md`
 Parse xlsx: `python3 -c "import openpyxl; ..."` (openpyxl installed)
